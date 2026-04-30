@@ -6,6 +6,7 @@ import process from "node:process";
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const skillRoot = process.argv[2] ? path.resolve(process.argv[2]) : path.resolve(scriptDir, "..");
 const errors = [];
+const isGitCheckout = fs.existsSync(path.join(skillRoot, ".git"));
 
 function addError(message) {
   errors.push(message);
@@ -49,7 +50,13 @@ if (!nameMatch) {
 } else {
   const directoryName = path.basename(skillRoot);
   if (nameMatch[1] !== directoryName) {
-    addError(`SKILL.md name '${nameMatch[1]}' must match directory '${directoryName}'`);
+    if (isGitCheckout) {
+      console.warn(
+        `Warning: SKILL.md name '${nameMatch[1]}' does not match checkout directory '${directoryName}'. Installed skill directories should use the skill name.`
+      );
+    } else {
+      addError(`SKILL.md name '${nameMatch[1]}' must match directory '${directoryName}'`);
+    }
   }
 }
 
@@ -70,12 +77,7 @@ const requiredFiles = [
   "assets/confidential-voting.sol.md",
   "assets/confidential-voting.test.ts.md",
   "assets/confidential-token-pattern.sol.md",
-  "assets/fhevm-frontend.ts.md",
-  "demo/README.md",
-  "demo/natural-language-prompt.md",
-  "demo/agent-walkthrough.md",
-  "demo/mistake-prevention.md",
-  "demo/validation-results.md"
+  "assets/fhevm-frontend.ts.md"
 ];
 
 for (const relativePath of requiredFiles) {
@@ -131,7 +133,7 @@ const deprecatedPatterns = [
   /setDecryptionOracle\(/
 ];
 
-for (const relativeDir of ["assets", "demo/generated-app"]) {
+for (const relativeDir of ["assets"]) {
   const dirPath = path.join(skillRoot, relativeDir);
   if (!fs.existsSync(dirPath)) {
     continue;

@@ -1,6 +1,6 @@
 # Zama FHEVM Confidential Contracts Skill
 
-This package is a universal skill package for building confidential smart contracts on Zama Protocol. It keeps the canonical workflow in `SKILL.md`, ships adapters for Codex and Cursor, stays publishable as a standard Agent Skills directory, and includes a submission-oriented demo surface.
+This package is a universal skill package for building confidential smart contracts on Zama Protocol. It keeps the canonical workflow in `SKILL.md`, ships adapters for Codex and Cursor, and stays publishable as a standard Agent Skills directory.
 
 ## What this package covers
 
@@ -57,7 +57,6 @@ npx skills add malawadd/zama-fhevm-confidential-contracts
 - `agents/openai.yaml`: Codex app metadata
 - `references/`: focused technical references
 - `assets/`: starter templates and code examples
-- `demo/`: submission prompts, walkthrough, evidence, and generated app
 - `scripts/validate-skill.mjs`: cross-platform structural validator
 - `scripts/validate-skill.sh`: POSIX wrapper
 - `scripts/validate-skill.ps1`: PowerShell wrapper
@@ -80,9 +79,8 @@ Then run the agent evaluation prompts in `references/validation.md` inside a fre
 ## Validation status
 
 - local structural validation passed in this workspace through the bundled validator
-- generated demo app compile, focused test, and local Hardhat deployment all passed in this workspace; see `demo/validation-results.md`
 - the reference `skills-ref` validator was not installed in this environment, so spec validation here is limited to the bundled checker unless installed later
-- runnable agent-driven app validation is staged and evidenced in `demo/`
+- runnable agent-driven validation should be performed from the prompts in `references/validation.md` against a fresh FHEVM Hardhat template project
 
 ## Portability notes
 
@@ -94,4 +92,4 @@ This package now ships first-class adapters for Agent Skills loaders, Codex, and
 - current app-side guidance uses `@zama-fhe/relayer-sdk`
 - current Solidity guidance uses `FHE`, `externalE...` inputs, and `ZamaEthereumConfig`
 - OpenZeppelin confidential contracts are useful but evolve quickly and do not promise backward compatibility
-- the packaged demo still depends on the target machine meeting Zama's Node and Hardhat prerequisites
+- validation still depends on the target machine meeting Zama's Node and Hardhat prerequisites
