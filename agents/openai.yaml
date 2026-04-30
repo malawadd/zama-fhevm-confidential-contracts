@@ -1,0 +1,7 @@
+interface:
+  display_name: "Zama FHEVM Confidential Contracts"
+  short_description: "Build and validate confidential Zama FHEVM apps, tokens, tests, and relayer flows."
+  default_prompt: "Use this skill to build or debug a Zama Protocol FHEVM application with current APIs, tests, deployment, and frontend integration."
+
+policy:
+  allow_implicit_invocation: true

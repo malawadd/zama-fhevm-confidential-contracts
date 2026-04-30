@@ -1,0 +1,48 @@
+---
+description: Build, test, deploy, and integrate confidential smart contracts on Zama Protocol FHEVM, including encrypted inputs, ACL, decryption, OpenZeppelin confidential contracts, and ERC-7984.
+alwaysApply: false
+---
+
+# Zama FHEVM Confidential Contracts
+
+Apply this rule when the user asks for confidential Solidity contracts, FHEVM development, encrypted voting, ERC-7984, OpenZeppelin confidential contracts, input proofs, decryption, relayer integration, or Zama Hardhat setup.
+
+## Required defaults
+
+- Use `FHE`, not deprecated `TFHE`.
+- Use `externalE...` inputs with `bytes inputProof` for fresh encrypted values.
+- Inherit `ZamaEthereumConfig` instead of hardcoding coprocessor or verifier addresses.
+- Use `@fhevm/hardhat-plugin` for Hardhat tests.
+- Use `@zama-fhe/relayer-sdk` for current frontend encryption and decryption flows.
+- Treat encrypted `view` return values as ciphertext handles, not plaintext values.
+- Re-grant `FHE.allowThis`, `FHE.allow`, or `FHE.allowTransient` whenever new ciphertext handles must be reused or decrypted later.
+- State clearly that FHEVM protects confidential amounts and values, not all transaction metadata.
+
+## Workflow
+
+1. Read `SKILL.md` for the routing layer.
+2. Pull the focused reference you need from `references/`.
+3. Reuse canonical templates from `assets/` before inventing a new pattern.
+4. Always pair new contracts with matching tests and a minimal deploy or integration path.
+5. Run the validation checklist in `references/validation.md` before presenting the result.
+
+## High-risk mistakes to avoid
+
+- deprecated `TFHE` or `einput` usage
+- missing `inputProof`
+- missing ACL on new ciphertext state
+- view functions described as returning plaintext
+- hardcoded Zama infrastructure addresses
+- ERC-7984 treated as ERC-20 compatible
+- callbacks without reentrancy discussion
+
+## Canonical local references
+
+- `references/solidity-patterns.md`
+- `references/frontend-and-decryption.md`
+- `references/testing-and-deployment.md`
+- `references/oz-and-erc7984.md`
+- `assets/confidential-voting.sol.md`
+- `assets/confidential-voting.test.ts.md`
+- `assets/confidential-token-pattern.sol.md`
+- `assets/fhevm-frontend.ts.md`
