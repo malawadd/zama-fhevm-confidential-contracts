@@ -17,7 +17,7 @@ Use the local skill package in this repository when the task involves confidenti
 - Use `externalE...` types plus `bytes inputProof` for fresh encrypted inputs.
 - Inherit `ZamaEthereumConfig`; do not hardcode FHEVM infrastructure addresses.
 - Use `@fhevm/hardhat-plugin` for tests and `@zama-fhe/relayer-sdk` for current frontend flows.
-- Re-grant ACL permissions whenever a new ciphertext handle is produced and later reused or decrypted.
+- Re-grant ACL permissions whenever encrypted state is reassigned and a new ciphertext handle is produced for later reuse or decryption.
 - Describe the privacy scope honestly: ciphertext values are private, but addresses and transaction metadata are not automatically hidden.
 
 ## High-value references

@@ -2,6 +2,8 @@
 
 This package is a universal skill package for building confidential smart contracts on Zama Protocol. It keeps the canonical workflow in `SKILL.md`, ships adapters for Codex and Cursor, and stays publishable as a standard Agent Skills directory.
 
+It is intentionally a distribution repo, not a maintainer framework. The package focuses on portable routing, focused references, and reusable templates rather than CI, contribution scaffolding, or benchmark claims.
+
 ## What this package covers
 
 - FHEVM architecture and onchain FHE workflow
@@ -22,6 +24,28 @@ Copy the `zama-fhevm-confidential-contracts` directory into one of these locatio
 - Codex repo skill: `.agents/skills/zama-fhevm-confidential-contracts`
 
 Keep the directory name unchanged. The Agent Skills spec requires the directory name to match the `name` field in `SKILL.md`.
+
+## Quick start
+
+1. Install the skill into a GitHub Copilot, Codex, or Cursor-compatible location.
+2. Open a fresh project based on the Zama Hardhat template.
+3. Ask for a confidential contract such as an encrypted counter, voting flow, or ERC-7984 token.
+4. Let the skill route into `references/` and `assets/`, then run the generated tests in the target project.
+
+For best results, keep three rules in mind:
+
+- fresh confidential inputs should use `externalE...` plus `inputProof`
+- every encrypted state mutation creates a new handle that must be re-allowed
+- plaintext amounts, flags, timestamps, and counters should stay plaintext unless the privacy model truly requires encryption
+
+## Adapter matrix
+
+| Adapter | Best use | What it carries |
+| --- | --- | --- |
+| `SKILL.md` | GitHub Copilot and Agent Skills style loaders | Full routing layer, activation cues, reference map, and correctness checks |
+| `AGENTS.md` | Codex or repo-level plain-markdown guidance | Short project instructions that point agents back to `SKILL.md` and the local references |
+| `.cursor/rules/zama-fhevm-confidential-contracts.mdc` | Cursor rule import or project rule | Lightweight activation and defaults for Cursor with a pointer back to the full workflow |
+| `agents/openai.yaml` | Codex app metadata | Optional metadata for Codex-oriented distribution |
 
 ### Cursor
 
@@ -63,7 +87,7 @@ npx skills add malawadd/zama-fhevm-confidential-contracts
 
 ## Validation included
 
-Run the local validator after edits:
+Run the bundled structural validator after edits:
 
 ```bash
 node scripts/validate-skill.mjs
@@ -78,9 +102,9 @@ Then run the agent evaluation prompts in `references/validation.md` inside a fre
 
 ## Validation status
 
-- local structural validation passed in this workspace through the bundled validator
-- the reference `skills-ref` validator was not installed in this environment, so spec validation here is limited to the bundled checker unless installed later
-- runnable agent-driven validation should be performed from the prompts in `references/validation.md` against a fresh FHEVM Hardhat template project
+- bundled structural validation passed in this workspace through the packaged validator
+- external spec-tool validation with `skills-ref` was not run in this environment
+- agent-driven validation still needs to be run from the prompts in `references/validation.md` against a fresh FHEVM Hardhat template project
 
 ## Portability notes
 

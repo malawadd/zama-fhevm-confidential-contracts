@@ -7,6 +7,13 @@ metadata:
   version: "1.0.0"
   protocol_baseline: "Zama docs checked 2026-04-30"
   package_scope: "universal"
+  keywords:
+    - fhevm
+    - zama
+    - solidity
+    - confidential-smart-contracts
+    - hardhat
+  category: blockchain
 ---
 
 # Zama FHEVM Confidential Contracts
@@ -18,11 +25,12 @@ Use this skill whenever the task involves writing, fixing, testing, deploying, o
 Activate this skill if the user mentions any of the following:
 - FHEVM, Zama Protocol, confidential smart contracts
 - encrypted Solidity types such as `euint64`, `ebool`, or `eaddress`
-- `FHE.add`, `FHE.select`, `FHE.allow`, `FHE.allowTransient`, or `FHE.makePubliclyDecryptable`
+- `FHE.add`, `FHE.sub`, `FHE.select`, `FHE.allow`, `FHE.allowTransient`, or `FHE.makePubliclyDecryptable`
 - encrypted inputs, input proofs, user decryption, public decryption, or EIP-712 decryption signatures
 - `@fhevm/hardhat-plugin`, `@zama-fhe/relayer-sdk`, or older `fhevmjs`
 - OpenZeppelin confidential contracts or ERC-7984
 - confidential voting, confidential ERC-20 style tokens, wrappers, or private transfer flows
+- mixed plaintext and encrypted state such as encrypted balances with public membership flags, counters, or timestamps
 
 ## Non-negotiable defaults
 
@@ -32,7 +40,7 @@ Activate this skill if the user mentions any of the following:
 4. Inherit `ZamaEthereumConfig` instead of hardcoding coprocessor, ACL, KMS, or input verifier addresses.
 5. Use `@fhevm/hardhat-plugin` for Hardhat tests and `@zama-fhe/relayer-sdk` for current frontend encryption and decryption flows.
 6. Assume encrypted `view` functions return ciphertext handles, not plaintext values.
-7. Re-grant ACL permissions after producing new ciphertext state. Missing `FHE.allowThis` or `FHE.allow` is a correctness bug, not an optimization issue.
+7. Re-grant ACL permissions after producing new ciphertext state. Every storage reassignment that returns a new handle after `FHE.add`, `FHE.sub`, `FHE.select`, or similar operations must be followed by the right `FHE.allowThis`, `FHE.allow`, or `FHE.allowTransient` calls. Missing ACL on the new handle is a correctness bug, not an optimization issue.
 8. Prefer the official Hardhat template as the starting point for new work.
 9. When a user asks for ERC-7984, state that it is a draft ERC and is not ERC-20 compatible.
 10. Never claim participant addresses are private onchain unless the surrounding design truly hides them elsewhere.
@@ -47,6 +55,8 @@ Activate this skill if the user mentions any of the following:
    - Confidential token or wrapper: [OpenZeppelin and ERC-7984](references/oz-and-erc7984.md)
    - Failure analysis: [troubleshooting](references/troubleshooting.md)
 3. Draft the contract with current imports, encrypted inputs, and ACL rules.
+  - Identify every code path that replaces encrypted storage and treat each replacement as a new handle that must be re-allowed.
+  - Keep plaintext membership flags, roles, timestamps, and loop bounds plaintext unless confidentiality is actually required for them.
 4. Generate a matching Hardhat test that encrypts inputs, passes `inputProof`, and decrypts expected handles.
 5. Add deployment or integration code only after the contract and tests agree on the ciphertext lifecycle.
 6. Self-check against the validation checklist before presenting the result. Use [validation](references/validation.md).
@@ -75,9 +85,10 @@ Produce:
 Check for:
 - deprecated `TFHE`, `einput`, or old oracle-request APIs
 - missing `ZamaEthereumConfig`
-- missing `FHE.allowThis`, `FHE.allow`, or `FHE.allowTransient`
+- missing `FHE.allowThis`, `FHE.allow`, or `FHE.allowTransient`, especially after encrypted state is reassigned
 - missing or mismatched `inputProof`
 - plaintext assumptions in `view` functions
+- ciphertext-heavy loops that should instead use plaintext counters, flags, or bounded batching
 - incorrect ERC-7984 operator or callback semantics
 
 ### ERC-7984 or OpenZeppelin request
@@ -97,11 +108,12 @@ Use these before inventing a new pattern:
 Before returning code:
 1. Confirm every fresh encrypted parameter uses an `externalE...` type plus `bytes inputProof`.
 2. Confirm every newly produced encrypted state value is re-allowed for the contract and any actor that must decrypt or reuse it later.
-3. Confirm tests use the Hardhat `fhevm` API for encryption and decryption.
-4. Confirm the code does not hardcode Zama infrastructure addresses.
-5. Confirm decryption batches stay under the 2048-bit limit.
-6. Confirm public reveal flows use `FHE.makePubliclyDecryptable` and, when verified onchain, `FHE.checkSignatures`.
-7. Confirm ERC-7984 callbacks are guarded against reentrancy if callback variants are used.
+3. Confirm any plaintext scalar input path is intentional and still enforced with FHE comparisons or selection logic when confidentiality depends on encrypted state.
+4. Confirm tests use the Hardhat `fhevm` API for encryption and decryption.
+5. Confirm the code does not hardcode Zama infrastructure addresses.
+6. Confirm decryption batches stay under the 2048-bit limit.
+7. Confirm public reveal flows use `FHE.makePubliclyDecryptable` and, when verified onchain, `FHE.checkSignatures`.
+8. Confirm ERC-7984 callbacks are guarded against reentrancy if callback variants are used.
 
 ## When docs conflict
 

@@ -12,6 +12,16 @@ Likely causes:
 
 Fix by tracing the full ciphertext lifecycle and re-granting ACL permissions on every new handle.
 
+### State mutation worked once and then later decrypt or reuse calls fail
+
+This usually means the contract reassigned encrypted storage with `FHE.add`, `FHE.sub`, `FHE.select`, or a similar operation and kept the variable name, but forgot that the stored handle changed.
+
+Fix by treating every encrypted reassignment as a new handle:
+
+- re-run `FHE.allowThis` on the new stored value
+- re-run `FHE.allow` for every actor that must decrypt or reuse it later
+- use `FHE.allowTransient` if the new handle is only needed by another contract in the same transaction
+
 ### Contract call reverts when importing an encrypted input
 
 Likely causes:
@@ -21,6 +31,13 @@ Likely causes:
 - the Solidity signature does not use the matching `externalE...` type
 
 Fix by regenerating the encrypted buffer and verifying type alignment on both sides.
+
+### The contract expects encrypted inputs, but the intended design only needs a plaintext scalar
+
+You may be forcing the wrong interface onto the problem.
+If the submitted amount or bound does not need confidentiality, keep it plaintext and enforce the decision against encrypted state with `FHE.ge`, `FHE.le`, `FHE.select`, or similar operations.
+
+If the value itself is meant to stay confidential, keep the `externalE...` plus `inputProof` path and verify that the frontend encrypts the matching type.
 
 ### The code returns an encrypted handle from a view function and the UI shows garbage
 
@@ -41,6 +58,17 @@ Encrypted arithmetic does not automatically surface overflow. Guard sensitive st
 ### Cross-contract confidential call fails inside the same transaction
 
 You probably needed `FHE.allowTransient` before passing a ciphertext to another contract for same-transaction use.
+
+### Batch member or permission updates become too expensive or brittle
+
+The design may be looping over too many actors while mixing ciphertext writes and permission grants.
+
+Fix by:
+
+- using plaintext loop bounds, membership flags, and counters when those fields do not need confidentiality
+- capping batch sizes explicitly instead of processing unbounded arrays
+- granting decrypt or reuse permissions only to actors that genuinely need them later
+- splitting large workflows into smaller batches when ciphertext writes and ACL work pile up in one call
 
 ### Public decryption works offchain but onchain finalization fails
 

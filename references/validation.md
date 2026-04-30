@@ -17,10 +17,12 @@ This checks:
 - the main skill stays under the spec's recommended size envelope
 - asset templates do not reintroduce deprecated APIs such as `TFHE` or `einput`
 
+Structural validation here does not prove the skill generated a correct contract in a target Hardhat project. It only checks the package shape, local references, and obvious deprecated patterns.
+
 ## Current run status
 
-- executed in this workspace on 2026-04-30: `powershell -ExecutionPolicy Bypass -File scripts/validate-skill.ps1`
-- result: pass
+- structural validation executed in this workspace on 2026-04-30: `powershell -ExecutionPolicy Bypass -File scripts/validate-skill.ps1`
+- structural validation result: pass
 - `skills-ref` was not available in the current environment, so external spec-tool validation was not run here
 - agent-in-the-loop validation prompts below are ready for the next step inside GitHub Copilot or another Agent Skills compatible tool
 
@@ -37,7 +39,7 @@ Write me a confidential voting contract using Zama FHEVM. I need a Solidity cont
 Pass criteria:
 
 - contract uses `FHE`, `ZamaEthereumConfig`, `externalEbool`, and `bytes inputProof`
-- tally state is re-allowed with `FHE.allowThis` and owner access is granted with `FHE.allow`
+- tally state is re-allowed with `FHE.allowThis` and owner access is granted with `FHE.allow` after every mutation that creates a new handle
 - test uses `fhevm.createEncryptedInput` and `fhevm.userDecryptEuint`
 - frontend uses `@zama-fhe/relayer-sdk` with `createEncryptedInput`, `createEIP712`, and `userDecrypt`
 - public reveal path uses `FHE.makePubliclyDecryptable`
@@ -54,6 +56,7 @@ Pass criteria:
 - contract starts from OpenZeppelin `ERC7984` and current Zama imports
 - minted amounts use `externalEuint64` plus `inputProof`
 - response distinguishes operators from decrypt permissions
+- any reassigned encrypted balances or allowances are re-allowed for the contract and the actors that need later access
 - wrapper guidance explains the public ERC-20 to confidential ERC-7984 flow and the disclose or finalize step for reverse conversion
 
 ## Manual review checklist
@@ -66,5 +69,7 @@ Reject or revise the generated output if any of the following appear:
 - missing `inputProof` for fresh confidential inputs
 - `view` functions described as returning plaintext values
 - no ACL setup for handles that later need decryption
+- encrypted storage is reassigned without renewed ACL on the new handle
+- plaintext flags, loop bounds, or timestamps are encrypted without a clear privacy need
 - ERC-7984 described as an ERC-20 drop-in replacement
 - callbacks added without any reentrancy discussion

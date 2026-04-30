@@ -76,6 +76,30 @@ euint64 amount = FHE.fromExternal(encryptedAmount, inputProof);
 
 If multiple external ciphertexts were created in the same input buffer, they can share the same `inputProof`.
 
+## Ciphertext state mutation and re-allowing
+
+Every assignment that stores the result of an FHE operation creates a new ciphertext handle.
+Treat that new handle as a fresh ACL object, even if the variable name did not change.
+
+```solidity
+function increment(externalEuint64 encryptedAmount, bytes calldata inputProof) external {
+    euint64 delta = FHE.fromExternal(encryptedAmount, inputProof);
+
+    if (!FHE.isInitialized(_counter)) {
+        _counter = FHE.asEuint64(0);
+        FHE.allowThis(_counter);
+    }
+
+    _counter = FHE.add(_counter, delta);
+
+    FHE.allowThis(_counter);
+    FHE.allow(_counter, msg.sender);
+}
+```
+
+Apply the same rule after `FHE.sub`, `FHE.select`, `FHE.min`, `FHE.max`, or any helper that replaces encrypted state.
+If another contract needs the handle only inside the same transaction, use `FHE.allowTransient` on the new handle before the call.
+
 ## Operations to prefer
 
 Common operations on encrypted values:
@@ -87,6 +111,30 @@ Common operations on encrypted values:
 - randomness: `FHE.randEuintX` where the use case truly needs onchain random ciphertexts
 
 Use plaintext scalars where supported. It is cheaper than wrapping constants into encrypted values unnecessarily.
+
+## Plaintext scalar inputs with FHE-enforced checks
+
+Not every user-controlled value must arrive as an encrypted input.
+If the privacy boundary is the stored ciphertext state rather than the submitted scalar, keep the scalar plaintext and enforce the business rule with FHE comparisons or selection logic.
+
+```solidity
+function withdraw(uint64 amount) external {
+    euint64 currentBalance = _balances[msg.sender];
+    euint64 nextBalance = FHE.sub(currentBalance, amount);
+    ebool enoughBalance = FHE.ge(currentBalance, amount);
+
+    _balances[msg.sender] = FHE.select(enoughBalance, nextBalance, currentBalance);
+
+    FHE.allowThis(_balances[msg.sender]);
+    FHE.allow(_balances[msg.sender], msg.sender);
+}
+```
+
+Use this pattern when all of the following are true:
+
+- the plaintext scalar itself does not need confidentiality
+- the confidential state remains encrypted throughout the decision
+- the result is still written back as encrypted state with fresh ACL grants
 
 ## ACL rules
 
@@ -104,6 +152,8 @@ euint64 amount = FHE.fromExternal(encryptedAmount, inputProof);
 FHE.allowTransient(amount, address(token));
 token.confidentialTransfer(to, amount);
 ```
+
+When batching multiple updates, bound the loop with plaintext counters and grant permissions only to the actors that truly need the resulting handles later.
 
 ## Conditional logic and overflow defense
 
@@ -137,10 +187,29 @@ require(FHE.isInitialized(counter), "Counter not initialized");
 
 Prefer lazy initialization for encrypted state unless you have already verified that constructor-time FHE operations are safe in the exact deployment path you are using.
 
+## Hybrid encrypted and plaintext state
+
+Real FHEVM applications often split state deliberately:
+
+- encrypted values for balances, tallies, limits, or eligibility results
+- plaintext values for membership flags, roles, timestamps, loop bounds, and counts
+
+This keeps gas and control flow manageable while preserving confidentiality where it matters.
+Do not encrypt a flag, counter, or timestamp unless the privacy model actually requires that field to remain confidential.
+
+Typical examples:
+
+- a private payroll amount with a plaintext employee registry
+- an encrypted vote tally with plaintext election timing and voter participation flags
+- an encrypted credit limit with plaintext loan status and repayment timestamps
+
 ## Common mistakes
 
 - forgetting `FHE.allowThis` after replacing stored encrypted state
+- assuming a reassigned ciphertext keeps the old ACL grants automatically
 - forgetting `FHE.allow` for the user or operator expected to decrypt later
+- encrypting membership flags, loop bounds, or timestamps without a real privacy need
+- forcing a plaintext workflow into an `externalE...` interface or the reverse
 - using an encrypted divisor in `FHE.div` or `FHE.rem`
 - returning encrypted handles and describing them as plaintext results
 - using `euint256` when `euint32` or `euint64` would be enough

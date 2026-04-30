@@ -1,5 +1,7 @@
 # Distribution and tool adapters
 
+This repository is intentionally a distribution package. It is meant to be installed and reused across agent tools, not to act as a maintainer framework with CI, contributor policy, or benchmark reporting.
+
 ## Agent Skills and skills.sh
 
 This package follows the open Agent Skills directory layout:
@@ -15,6 +17,12 @@ That makes it suitable for:
 - GitHub Copilot style skill loaders
 - Codex Agent Skills
 - skills.sh GitHub-based distribution
+
+The current package intentionally does not bundle:
+
+- maintainer-only CI workflows
+- contribution scaffolding or a skill template generator
+- benchmark claims or evaluation dashboards
 
 For skills.sh style installation, publish this package from a GitHub repository and install it with:
 
@@ -50,6 +58,15 @@ This package ships both adapters:
 
 For direct project use, copy one of them into the project root. For remote import, publish the repository and import the `.mdc` rule from GitHub through Cursor's Remote Rule flow.
 
+## Adapter expectations
+
+Use the adapter that matches the tool and the depth you need:
+
+- `SKILL.md` for the full routing layer, reference map, and correctness checks
+- `AGENTS.md` when the tool only consumes repository-level markdown instructions
+- `.cursor/rules/zama-fhevm-confidential-contracts.mdc` for Cursor-native rule activation
+- `agents/openai.yaml` as optional metadata for Codex-oriented distribution
+
 ## Cross-platform notes
 
 The packaged validation path is Node-based so it works on Windows, macOS, and Linux. Use one of these commands from the skill root:
@@ -64,6 +81,8 @@ powershell -ExecutionPolicy Bypass -File scripts/validate-skill.ps1
 ```
 
 Because Zama's documented Hardhat workflow assumes Node and npm, these are reasonable baseline requirements across all operating systems.
+
+Structural validation only proves the package layout and local guidance consistency. Contract correctness still has to be exercised in a target Hardhat project with the prompts from `references/validation.md`.
 
 ## Publishing checklist
 

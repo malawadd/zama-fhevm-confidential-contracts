@@ -15,7 +15,7 @@ Apply this rule when the user asks for confidential Solidity contracts, FHEVM de
 - Use `@fhevm/hardhat-plugin` for Hardhat tests.
 - Use `@zama-fhe/relayer-sdk` for current frontend encryption and decryption flows.
 - Treat encrypted `view` return values as ciphertext handles, not plaintext values.
-- Re-grant `FHE.allowThis`, `FHE.allow`, or `FHE.allowTransient` whenever new ciphertext handles must be reused or decrypted later.
+- Re-grant `FHE.allowThis`, `FHE.allow`, or `FHE.allowTransient` whenever encrypted state is reassigned and a new ciphertext handle must be reused or decrypted later.
 - State clearly that FHEVM protects confidential amounts and values, not all transaction metadata.
 
 ## Workflow
@@ -35,6 +35,8 @@ Apply this rule when the user asks for confidential Solidity contracts, FHEVM de
 - hardcoded Zama infrastructure addresses
 - ERC-7984 treated as ERC-20 compatible
 - callbacks without reentrancy discussion
+
+For the deeper workflow, reference map, and validation rules, read `SKILL.md` in the repository root.
 
 ## Canonical local references
 

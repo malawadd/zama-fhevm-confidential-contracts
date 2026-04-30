@@ -47,6 +47,9 @@ Use the `add...` method that matches the target Solidity type:
 - `add256`
 - `addAddress`
 
+The returned handles are `0x`-prefixed identifiers for uploaded ciphertexts.
+Type alignment still has to match end to end: if the frontend encrypts with `add64`, the contract should import that value through the matching `externalEuint64` argument and the same `inputProof`.
+
 ## User decryption flow
 
 User decryption is an offchain re-encryption flow. The contract exposes a ciphertext handle through a `view` function, and the frontend requests re-encryption to the user's NaCl keypair.
@@ -117,6 +120,8 @@ Examples:
 - 32 values of `euint64` are too large
 - 32 values of `euint32` fit exactly
 - a mixed batch must be counted explicitly
+
+When in doubt, split large decrypt requests into smaller batches instead of pushing the full limit in one call.
 
 ## Frontend rules
 

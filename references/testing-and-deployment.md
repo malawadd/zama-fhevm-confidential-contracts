@@ -74,6 +74,20 @@ Before Sepolia deployment:
 - confirm no contract addresses are hardcoded
 - confirm all constructor args are deterministic and explicit
 
+## Sepolia checklist
+
+Typical flow from the target Hardhat project:
+
+```powershell
+npx hardhat vars set MNEMONIC
+npx hardhat vars set INFURA_API_KEY
+npx hardhat test
+npx hardhat run scripts/deploy.ts --network sepolia
+```
+
+If the target project uses contract verification, run the matching verify command after deployment with the deployed address and constructor arguments.
+Keep relayer configuration, wallet selection, and any API-key requirements in the target project rather than hardcoding them into the skill assets.
+
 ## Release checklist
 
 Before calling a contract production-ready:
